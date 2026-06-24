@@ -70,24 +70,33 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
 
     private fun setupUserInfoCard() {
         val isLoggedIn = BackendAuth.isLoggedIn()
-        val serverUrl = BackendAuth.serverUrl
 
         if (isLoggedIn) {
             val displayName = BackendAuth.getDisplayName()
             binding.tvDisplayName.text = displayName
-            binding.tvUserGroup.text = BackendAuth.getGroupDescription()
+            binding.tvUserSubtitle.text = "账号：${BackendAuth.username}"
             binding.tvAvatar.text = displayName.firstOrNull()?.uppercase() ?: "U"
-            binding.tvGroupBadge.visibility = View.VISIBLE
-            binding.tvGroupBadge.text = BackendAuth.groupName.ifEmpty { BackendAuth.getGroupDescription() }
-            binding.tvServerInfo.text = "服务器：$serverUrl"
+            // 服务状态
+            binding.viewStatusDot.setBackgroundResource(R.drawable.bg_button)
+            binding.tvServiceStatus.text = "服务状态：已连接"
         } else {
             binding.tvDisplayName.text = "未登录"
-            binding.tvUserGroup.text = "请先登录后台"
+            binding.tvUserSubtitle.text = "请先登录后台"
             binding.tvAvatar.text = "?"
-            binding.tvGroupBadge.visibility = View.GONE
-            binding.tvServerInfo.text = "服务器：未配置"
+            binding.tvServiceStatus.text = "未连接"
         }
 
+        // 整个卡片点击进入账号管理（登录/查看信息）
+        binding.cardUserInfo.setOnClickListener {
+            if (isLoggedIn) {
+                // 已登录，显示账号信息弹窗
+                showAccountInfo()
+            } else {
+                startActivity(Intent(requireContext(), BackendLoginActivity::class.java))
+            }
+        }
+
+        // 切换账号
         binding.btnSwitchAccount.setOnClickListener {
             if (isLoggedIn) {
                 requireContext().alert("切换账号", "当前账号将被退出，确定切换？") {
@@ -101,9 +110,18 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
                 startActivity(Intent(requireContext(), BackendLoginActivity::class.java))
             }
         }
+    }
 
-        binding.btnLogout.setOnClickListener {
-            if (isLoggedIn) {
+    private fun showAccountInfo() {
+        val info = buildString {
+            append("用户名：${BackendAuth.username}\n")
+            append("昵称：${BackendAuth.nickname.ifEmpty { "-" }}\n")
+            append("用户组：${BackendAuth.getGroupDescription()}\n")
+            append("服务器：${BackendAuth.serverUrl}")
+        }
+        requireContext().alert("账号信息", info) {
+            positiveButton("确定") {}
+            neutralButton("退出登录") {
                 requireContext().alert("退出登录", "确定退出当前账号？") {
                     positiveButton("确定") {
                         BackendAuth.logout()
@@ -113,8 +131,6 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
                     }
                     negativeButton("取消") {}
                 }
-            } else {
-                startActivity(Intent(requireContext(), BackendLoginActivity::class.java))
             }
         }
     }
@@ -187,17 +203,33 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
         override fun onPreferenceTreeClick(preference: Preference): Boolean {
             when (preference.key) {
                 "bookSourceManage" -> startActivity<BookSourceActivity>()
-                "replaceManage" -> startActivity<ReplaceRuleActivity>()
-                "dictRuleManage" -> startActivity<DictRuleActivity>()
-                "txtTocRuleManage" -> startActivity<TxtTocRuleActivity>()
-                "bookmark" -> startActivity<AllBookmarkActivity>()
-                "setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.OTHER_CONFIG) }
-                "web_dav_setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.BACKUP_CONFIG) }
+                // 阅读规则：弹出选择器
+                "txtTocRuleManage" -> {
+                    requireContext().selector(listOf("TXT 目录规则", "替换净化", "字典规则")) { _, index ->
+                        when (index) {
+                            0 -> startActivity<TxtTocRuleActivity>()
+                            1 -> startActivity<ReplaceRuleActivity>()
+                            2 -> startActivity<DictRuleActivity>()
+                        }
+                    }
+                }
                 "theme_setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.THEME_CONFIG) }
+                "web_dav_setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.BACKUP_CONFIG) }
+                "setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.OTHER_CONFIG) }
                 "fileManage" -> startActivity<FileManageActivity>()
                 "readRecord" -> startActivity<ReadRecordActivity>()
+                "bookmark" -> startActivity<AllBookmarkActivity>()
                 "about" -> startActivity<AboutActivity>()
-                "exit" -> activity?.finish()
+                "logout" -> {
+                    requireContext().alert("退出登录", "确定退出当前账号？") {
+                        positiveButton("确定") {
+                            BackendAuth.logout()
+                            toastOnUi("已退出登录")
+                            activity?.recreate()
+                        }
+                        negativeButton("取消") {}
+                    }
+                }
             }
             return super.onPreferenceTreeClick(preference)
         }
