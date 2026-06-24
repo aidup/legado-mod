@@ -77,6 +77,10 @@ class App : Application() {
         applyDayNightInit(this)
         registerActivityLifecycleCallbacks(LifecycleHelp)
         defaultSharedPreferences.registerOnSharedPreferenceChangeListener(AppConfig)
+        
+        // 初始化后台鉴权
+        io.legado.app.help.backend.BackendAuth.init(this)
+        
         Coroutine.async {
             LogUtils.init(this@App)
             LogUtils.d("App", "onCreate")

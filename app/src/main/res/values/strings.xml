@@ -23,6 +23,7 @@
     <string name="dialog_title">Prompt</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_confirm">Confirm</string>
+    <string name="dialog_dismiss">Dismiss</string>
     <string name="dialog_setting">Go to Settings</string>
     <string name="tip_cannot_jump_setting_page">Cannot jump to Settings.</string>
 

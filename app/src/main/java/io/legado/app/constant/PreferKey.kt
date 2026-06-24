@@ -209,4 +209,9 @@ object PreferKey {
     const val editAutoWrap = "editAutoWrap"
     const val editAutoComplete = "editAutoComplete"
     const val showBoardLine = "showBoardLine"
+
+    // 后台管控
+    const val backendUrl = "backendUrl"
+    const val backendToken = "backendToken"
+    const val backendUserInfo = "backendUserInfo"
 }

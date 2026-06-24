@@ -37,6 +37,9 @@ import io.legado.app.ui.about.CrashLogsDialog
 import io.legado.app.ui.association.ImportBookSourceDialog
 import io.legado.app.ui.association.ImportReplaceRuleDialog
 import io.legado.app.ui.association.ImportRssSourceDialog
+import io.legado.app.ui.login.BackendLoginActivity
+import io.legado.app.help.backend.BackendAuth
+import io.legado.app.help.backend.AuthResult
 import io.legado.app.ui.main.bookshelf.BaseBookshelfFragment
 import io.legado.app.ui.main.bookshelf.style1.BookshelfFragment1
 import io.legado.app.ui.main.bookshelf.style2.BookshelfFragment2
@@ -126,6 +129,8 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         lifecycleScope.launch {
             //隐私协议
             if (!privacyPolicy()) return@launch
+            // ===== 后台鉴权 =====
+            if (!backendAuth()) return@launch
             //版本更新
             upVersion()
             //设置本地密码
@@ -228,8 +233,52 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     /**
-     * 版本更新日志
+     * 后台鉴权
+     * 未配置后台 → 跳转配置页
+     * 未登录 → 跳转登录页
+     * 已登录但过期/封禁 → 跳转登录页
+     * 成功 → 返回 true
      */
+    private suspend fun backendAuth(): Boolean = suspendCancellableCoroutine sc@{ block ->
+        lifecycleScope.launch {
+            val result = BackendAuth.verify(this@MainActivity)
+            when (result) {
+                is AuthResult.Authenticated -> {
+                    // 检查弹窗公告
+                    result.notice?.let { notice ->
+                        val title = notice.optString("title", "")
+                        val content = notice.optString("content", "")
+                        val forceRead = notice.optInt("force_read", 0) == 1
+                        if (title.isNotBlank() || content.isNotBlank()) {
+                            alert(title, content) {
+                                positiveButton(R.string.dialog_confirm) {}
+                                if (!forceRead) {
+                                    negativeButton(R.string.dialog_dismiss) {}
+                                }
+                            }
+                        }
+                    }
+                    block.resume(true)
+                }
+                is AuthResult.NeedConfig, is AuthResult.NeedLogin -> {
+                    // 跳转登录页
+                    toastOnUi("请先登录后台")
+                    val intent = android.content.Intent(
+                        this@MainActivity,
+                        BackendLoginActivity::class.java
+                    )
+                    startActivityForResult(intent, REQUEST_BACKEND_LOGIN)
+                    block.resume(false)
+                }
+                is AuthResult.Error -> {
+                    toastOnUi("鉴权失败: ${result.message}")
+                    block.resume(false)
+                }
+            }
+        }
+    }
+
+    /** 版本更新日志 */
     private suspend fun upVersion() = suspendCancellableCoroutine sc@{ block ->
         if (LocalConfig.versionCode == appInfo.versionCode) {
             if (AppConfig.autoUpdateVariant) {
@@ -500,4 +549,32 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
         }
     }
 
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_BACKEND_LOGIN) {
+            if (resultCode == RESULT_OK) {
+                // 登录成功，重新启动初始化流程
+                lifecycleScope.launch {
+                    if (backendAuth()) {
+                        upVersion()
+                        setLocalPassword()
+                        notifyAppCrash()
+                        backupSync()
+                        viewModel.setActivityCallback(this@MainActivity)
+                        binding.viewPagerMain.postDelayed(1000) {
+                            viewModel.ruleSubsUp()
+                        }
+                    }
+                }
+            } else {
+                // 登录取消，退出 App
+                finish()
+            }
+        }
+    }
+
+    companion object {
+        private const val REQUEST_BACKEND_LOGIN = 1001
+    }
 }

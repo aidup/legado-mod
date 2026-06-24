@@ -28,6 +28,12 @@
     <color name="transparent30">#30000000</color>
     <color name="transparent50">#50000000</color>
 
+    <!-- 后台登录界面颜色 -->
+    <color name="text">#1a1a1a</color>
+    <color name="text_secondary">#6b7280</color>
+    <color name="card_background">#ffffff</color>
+    <color name="border">#e5e7eb</color>
+
     <color name="highlight">#d3321b</color>
 
     <color name="btn_bg_press">#63ACACAC</color>
