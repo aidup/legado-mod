@@ -4,15 +4,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import io.legado.app.R
 import io.legado.app.base.VMBaseActivity
 import io.legado.app.databinding.ActivityBackendLoginBinding
 import io.legado.app.help.backend.BackendApi
 import io.legado.app.help.backend.BackendAuth
 import io.legado.app.ui.main.MainActivity
+import io.legado.app.utils.viewbindingdelegate.viewBinding
 import kotlinx.coroutines.*
 
 class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, BackendLoginViewModel>() {
+
+    override val binding by viewBinding(ActivityBackendLoginBinding::inflate)
+    override val viewModel by viewModels<BackendLoginViewModel>()
 
     private var isLoginMode = true
 
@@ -125,7 +131,4 @@ class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, Backend
     private fun showToast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
-
-    override val binding by lazy { ActivityBackendLoginBinding.inflate(layoutInflater) }
-    override val viewModel by lazy { getViewModel(BackendLoginViewModel::class.java) }
 }
