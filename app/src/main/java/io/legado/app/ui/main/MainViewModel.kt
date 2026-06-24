@@ -130,8 +130,8 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
                 try {
                     val json = sources.getJSONObject(i).toString()
                     val source = gson.fromJson(json, io.legado.app.data.entities.BookSource::class.java)
-                    if (source != null && !source.sourceUrl.isNullOrBlank()) {
-                        val existing = appDb.bookSourceDao.getBookSource(source.sourceUrl)
+                    if (source != null && !source.bookSourceUrl.isNullOrBlank()) {
+                        val existing = appDb.bookSourceDao.getBookSource(source.bookSourceUrl)
                         if (existing == null) {
                             appDb.bookSourceDao.insert(source)
                         }

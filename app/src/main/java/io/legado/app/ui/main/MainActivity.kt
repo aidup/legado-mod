@@ -276,7 +276,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                                     startActivity(intent)
                                     finish()
                                 }
-                                cancellable(false)
+                                setCancelable(false)
                             }
                             block.resume(false)
                             return@launch
