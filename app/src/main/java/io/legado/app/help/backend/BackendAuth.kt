@@ -12,7 +12,8 @@ import org.json.JSONObject
 object BackendAuth {
 
     private const val PREFS_NAME = "backend_auth"
-    private const val KEY_TOKEN=***    private const val KEY_USER_ID = "user_id"
+    private const val KEY_TOKEN = "token"
+    private const val KEY_USER_ID = "user_id"
     private const val KEY_USERNAME = "username"
     private const val KEY_NICKNAME = "nickname"
     private const val KEY_AVATAR = "avatar"
