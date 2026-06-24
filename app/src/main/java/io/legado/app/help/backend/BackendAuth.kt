@@ -21,6 +21,8 @@ object BackendAuth {
     private const val KEY_GROUP_NAME = "group_name"
     private const val KEY_PERMISSIONS = "permissions"
     private const val KEY_SERVER_URL = "server_url"
+    private const val KEY_REMEMBER_USER = "remember_username"
+    private const val KEY_REMEMBER_PASS = "remember_password"
 
     private var prefs: SharedPreferences? = null
 
@@ -210,5 +212,56 @@ object BackendAuth {
      */
     fun getDeviceName(): String {
         return "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
+    }
+
+    /**
+     * 保存记住的账号密码
+     */
+    fun saveRememberedLogin(username: String, password: String) {
+        prefs?.edit()?.apply {
+            putString(KEY_REMEMBER_USER, username)
+            putString(KEY_REMEMBER_PASS, password)
+            apply()
+        }
+    }
+
+    /**
+     * 获取记住的账号密码
+     * @return Pair(username, password) 或 null
+     */
+    fun getRememberedLogin(): Pair<String, String>? {
+        val u = prefs?.getString(KEY_REMEMBER_USER, null)
+        val p = prefs?.getString(KEY_REMEMBER_PASS, null)
+        return if (!u.isNullOrEmpty() && !p.isNullOrEmpty()) Pair(u, p) else null
+    }
+
+    /**
+     * 清除记住的账号密码
+     */
+    fun clearRememberedLogin() {
+        prefs?.edit()?.apply {
+            remove(KEY_REMEMBER_USER)
+            remove(KEY_REMEMBER_PASS)
+            apply()
+        }
+    }
+
+    /**
+     * 获取用户显示名称（优先昵称，其次用户名）
+     */
+    fun getDisplayName(): String {
+        return nickname.ifEmpty { username }
+    }
+
+    /**
+     * 获取用户组描述
+     */
+    fun getGroupDescription(): String {
+        return when {
+            groupId == 99 -> "管理员"
+            groupId >= 3 -> "VIP 用户"
+            groupId >= 2 -> "普通用户"
+            else -> "试用用户"
+        }
     }
 }

@@ -2,6 +2,9 @@ package io.legado.app.ui.login
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
@@ -21,6 +24,7 @@ class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, Backend
     override val viewModel by viewModels<BackendLoginViewModel>()
 
     private var isLoginMode = true
+    private var passwordVisible = false
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         // 如果已配置服务器且已登录，直接验证
@@ -28,34 +32,55 @@ class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, Backend
             verifyAndProceed()
             return
         }
-
         initViews()
     }
 
     private fun initViews() {
-        // 如果已配置服务器，隐藏服务器地址输入
+        // 恢复记住的账号
+        val remembered = BackendAuth.getRememberedLogin()
+        if (remembered != null) {
+            binding.etUsername.setText(remembered.first)
+            binding.etPassword.setText(remembered.second)
+            binding.cbRemember.isChecked = true
+        }
+
+        // 如果已配置服务器，锁定地址输入
         if (BackendAuth.serverUrl.isNotEmpty()) {
             binding.etServerUrl.setText(BackendAuth.serverUrl)
             binding.etServerUrl.isEnabled = false
-            binding.etServerUrl.alpha = 0.5f
+            binding.etServerUrl.alpha = 0.6f
+            binding.tvServerStatus.text = "已连接"
+            binding.tvServerStatus.setTextColor(resources.getColor(R.color.primary, null))
         }
 
+        // 密码显示/隐藏
+        binding.btnTogglePassword.setOnClickListener {
+            passwordVisible = !passwordVisible
+            if (passwordVisible) {
+                binding.etPassword.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                binding.btnTogglePassword.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            } else {
+                binding.etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                binding.btnTogglePassword.setImageResource(android.R.drawable.ic_menu_view)
+            }
+            binding.etPassword.setSelection(binding.etPassword.text.length)
+        }
+
+        // 登录/注册按钮
         binding.btnAction.setOnClickListener {
             val serverUrl = binding.etServerUrl.text.toString().trim()
             val username = binding.etUsername.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
-            
+
             if (serverUrl.isEmpty()) {
                 showToast("请输入后台服务器地址")
                 return@setOnClickListener
             }
-            
             if (username.isEmpty() || password.isEmpty()) {
                 showToast("请输入用户名和密码")
                 return@setOnClickListener
             }
 
-            // 设置服务器地址
             if (BackendAuth.serverUrl.isEmpty()) {
                 BackendAuth.setServerUrl(serverUrl)
             }
@@ -79,6 +104,12 @@ class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, Backend
 
                     if (result != null) {
                         BackendAuth.saveLogin(result.first, result.second)
+                        // 记住密码
+                        if (binding.cbRemember.isChecked) {
+                            BackendAuth.saveRememberedLogin(username, password)
+                        } else {
+                            BackendAuth.clearRememberedLogin()
+                        }
                         BackendApi.registerDevice(deviceId, deviceName)
                         proceedToMain()
                     } else {
@@ -115,7 +146,6 @@ class BackendLoginActivity : VMBaseActivity<ActivityBackendLoginBinding, Backend
                     proceedToMain()
                 } else {
                     BackendAuth.logout()
-                    // 显示登录界面
                     initViews()
                 }
             }

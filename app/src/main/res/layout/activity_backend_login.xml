@@ -1,87 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="32dp"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="阅读Sigma"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="@color/text"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="请登录或注册后使用"
-        android:textSize="14sp"
-        android:textColor="@color/text_secondary"
-        android:layout_marginBottom="32dp" />
-
-    <EditText
-        android:id="@+id/et_server_url"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="后台服务器地址（如 http://192.168.1.100:8900）"
-        android:inputType="textUri"
-        android:maxLines="1"
-        android:padding="12dp"
-        android:textSize="13sp"
-        android:background="@drawable/bg_input"
-        android:layout_marginBottom="12dp" />
-
-    <EditText
-        android:id="@+id/et_username"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="用户名"
-        android:inputType="text"
-        android:maxLines="1"
-        android:padding="12dp"
-        android:background="@drawable/bg_input"
-        android:layout_marginBottom="12dp" />
-
-    <EditText
-        android:id="@+id/et_password"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="密码"
-        android:inputType="textPassword"
-        android:maxLines="1"
-        android:padding="12dp"
-        android:background="@drawable/bg_input"
-        android:layout_marginBottom="24dp" />
-
-    <Button
-        android:id="@+id/btn_action"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="登录"
-        android:textColor="@color/white"
-        android:background="@drawable/bg_button"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/tv_switch_mode"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="没有账号？去注册"
-        android:textSize="14sp"
-        android:textColor="@color/primary"
-        android:clickable="true"
-        android:focusable="true" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:visibility="gone" />
+        <!-- Logo 区域 -->
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_marginBottom="16dp" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="后台管控系统"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="登录后即可使用全部功能"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="32dp" />
+
+        <!-- 服务器地址 -->
+        <EditText
+            android:id="@+id/et_server_url"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="服务器地址"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="14sp"
+            android:background="@drawable/bg_input"
+            android:drawableStart="@android:drawable/ic_menu_manage"
+            android:drawablePadding="10dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- 用户名 -->
+        <EditText
+            android:id="@+id/et_username"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="用户名"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="14sp"
+            android:background="@drawable/bg_input"
+            android:drawableStart="@android:drawable/ic_menu_myplaces"
+            android:drawablePadding="10dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- 密码 + 小眼睛 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/et_password"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint="密码"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:paddingStart="14dp"
+                android:paddingEnd="48dp"
+                android:textSize="14sp"
+                android:background="@drawable/bg_input"
+                android:drawableStart="@android:drawable/ic_lock_idle_lock"
+                android:drawablePadding="10dp" />
+
+            <ImageButton
+                android:id="@+id/btn_toggle_password"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_view"
+                android:scaleType="centerInside"
+                android:contentDescription="显示/隐藏密码" />
+        </FrameLayout>
+
+        <!-- 记住密码 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <CheckBox
+                android:id="@+id/cb_remember"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="记住密码"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:buttonTint="@color/primary" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tv_server_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- 登录按钮 -->
+        <Button
+            android:id="@+id/btn_action"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="登录"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:background="@drawable/bg_button"
+            android:layout_marginBottom="14dp" />
+
+        <!-- 切换模式 -->
+        <TextView
+            android:id="@+id/tv_switch_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="没有账号？去注册"
+            android:textSize="14sp"
+            android:textColor="@color/primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp" />
+
+        <!-- 加载指示器 -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:visibility="gone" />
+
+        <!-- 版本信息 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:text="Powered by Legado Backend"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:alpha="0.5" />
+
+    </LinearLayout>
+</ScrollView>
