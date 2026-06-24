@@ -73,20 +73,12 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
         val serverUrl = BackendAuth.serverUrl
 
         if (isLoggedIn) {
-            // 显示用户信息
             val displayName = BackendAuth.getDisplayName()
             binding.tvDisplayName.text = displayName
             binding.tvUserGroup.text = BackendAuth.getGroupDescription()
-
-            // 头像首字母
-            val initial = displayName.firstOrNull()?.uppercase() ?: "U"
-            binding.tvAvatar.text = initial
-
-            // 用户组标签
+            binding.tvAvatar.text = displayName.firstOrNull()?.uppercase() ?: "U"
             binding.tvGroupBadge.visibility = View.VISIBLE
             binding.tvGroupBadge.text = BackendAuth.groupName.ifEmpty { BackendAuth.getGroupDescription() }
-
-            // 服务器信息
             binding.tvServerInfo.text = "服务器：$serverUrl"
         } else {
             binding.tvDisplayName.text = "未登录"
@@ -96,7 +88,6 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
             binding.tvServerInfo.text = "服务器：未配置"
         }
 
-        // 切换账号
         binding.btnSwitchAccount.setOnClickListener {
             if (isLoggedIn) {
                 requireContext().alert("切换账号", "当前账号将被退出，确定切换？") {
@@ -111,16 +102,13 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
             }
         }
 
-        // 退出登录
         binding.btnLogout.setOnClickListener {
             if (isLoggedIn) {
                 requireContext().alert("退出登录", "确定退出当前账号？") {
                     positiveButton("确定") {
                         BackendAuth.logout()
                         toastOnUi("已退出登录")
-                        // 刷新页面
                         setupUserInfoCard()
-                        // 跳转登录页
                         startActivity(Intent(requireContext(), BackendLoginActivity::class.java))
                     }
                     negativeButton("取消") {}
@@ -141,123 +129,77 @@ class MyFragment() : BaseFragment(R.layout.fragment_my_config), MainFragmentInte
         }
     }
 
-    /**
-     * 配置
-     */
     class MyPreferenceFragment : PreferenceFragment(),
         SharedPreferences.OnSharedPreferenceChangeListener {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            addPreferencesFromResource(R.xml.main_my_config)
-            findPreference<Preference>("web_dav_sync")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<ConfigActivity> {
-                        putExtra("configTag", ConfigTag.BACKUP_CONFIG.name)
+            putPrefBoolean(PreferKey.webService, WebService.isRun)
+            addPreferencesFromResource(R.xml.pref_main)
+            findPreference<SwitchPreference>("webService")?.onLongClick {
+                if (!WebService.isRun) return@onLongClick false
+                context?.selector(arrayListOf("复制地址", "浏览器打开")) { _, i ->
+                    when (i) {
+                        0 -> context?.sendToClip(it.summary.toString())
+                        1 -> context?.openUrl(it.summary.toString())
                     }
+                }
+                true
+            }
+            observeEventSticky<String>(EventBus.WEB_SERVICE) {
+                findPreference<SwitchPreference>(PreferKey.webService)?.let {
+                    it.isChecked = WebService.isRun
+                    it.summary = if (WebService.isRun) WebService.hostAddress else getString(R.string.web_service_desc)
+                }
+            }
+            findPreference<NameListPreference>(PreferKey.themeMode)?.let {
+                it.setOnPreferenceChangeListener { _, _ ->
+                    view?.post { ThemeConfig.applyDayNight(requireContext()) }
                     true
                 }
             }
-            findPreference<Preference>("web_dav_restore")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<ConfigActivity> {
-                        putExtra("configTag", ConfigTag.BACKUP_CONFIG.name)
-                    }
-                    true
-                }
-            }
-            findPreference<Preference>("replace")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<ReplaceRuleActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("bookmark")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<AllBookmarkActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("book_source")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<BookSourceActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("txt_toc_rule")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<TxtTocRuleActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("dict_rule")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<DictRuleActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("file_manage")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<FileManageActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("read_record")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<ReadRecordActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("about")?.let {
-                it.setOnPreferenceClickListener {
-                    startActivity<AboutActivity>()
-                    true
-                }
-            }
-            findPreference<Preference>("web_service")?.let {
-                it.setOnPreferenceClickListener {
-                    requireContext().selector(items = listOf("打开", "关闭")) { _, index ->
-                        when (index) {
-                            0 -> WebService.start(requireContext())
-                            1 -> WebService.stop(requireContext())
-                        }
-                    }
-                    true
-                }
-            }
-            findPreference<Preference>("theme")?.let {
-                it.setOnPreferenceClickListener {
-                    ThemeConfig.applyTheme(requireActivity())
-                    true
-                }
-            }
-            findPreference<Preference>("log")?.let {
-                it.setOnPreferenceClickListener {
-                    LogUtils.show(requireContext())
-                    true
-                }
-            }
+        }
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            listView.setEdgeEffectColor(primaryColor)
         }
 
         override fun onResume() {
             super.onResume()
-            preferenceScreen.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+            preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
         }
 
         override fun onPause() {
-            preferenceScreen.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
+            preferenceManager.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
             super.onPause()
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
             when (key) {
-                PreferKey.themeMode -> ThemeConfig.applyTheme(requireActivity())
-                PreferKey.showDiscovery -> {
-                    postEvent(EventBus.NOTIFY_MAIN, true)
+                PreferKey.webService -> {
+                    if (requireContext().getPrefBoolean("webService")) WebService.start(requireContext())
+                    else WebService.stop(requireContext())
                 }
-                PreferKey.showRSS -> {
-                    postEvent(EventBus.NOTIFY_MAIN, true)
-                }
+                "recordLog" -> LogUtils.upLevel()
             }
+        }
+
+        override fun onPreferenceTreeClick(preference: Preference): Boolean {
+            when (preference.key) {
+                "bookSourceManage" -> startActivity<BookSourceActivity>()
+                "replaceManage" -> startActivity<ReplaceRuleActivity>()
+                "dictRuleManage" -> startActivity<DictRuleActivity>()
+                "txtTocRuleManage" -> startActivity<TxtTocRuleActivity>()
+                "bookmark" -> startActivity<AllBookmarkActivity>()
+                "setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.OTHER_CONFIG) }
+                "web_dav_setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.BACKUP_CONFIG) }
+                "theme_setting" -> startActivity<ConfigActivity> { putExtra("configTag", ConfigTag.THEME_CONFIG) }
+                "fileManage" -> startActivity<FileManageActivity>()
+                "readRecord" -> startActivity<ReadRecordActivity>()
+                "about" -> startActivity<AboutActivity>()
+                "exit" -> activity?.finish()
+            }
+            return super.onPreferenceTreeClick(preference)
         }
     }
 }
