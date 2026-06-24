@@ -542,6 +542,10 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
     companion object {
 
         fun start(context: Context, key: String?, searchScope: String? = null) {
+            if (!io.legado.app.help.backend.PermissionManager.canSearch()) {
+                android.widget.Toast.makeText(context, "当前用户组无搜索权限", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
             context.startActivity<SearchActivity> {
                 putExtra("key", key)
                 putExtra("searchScope", searchScope)
@@ -549,6 +553,10 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
         }
 
         fun start(context: Context, source: BookSource, key: String? = null) {
+            if (!io.legado.app.help.backend.PermissionManager.canSearch()) {
+                android.widget.Toast.makeText(context, "当前用户组无搜索权限", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
             context.startActivity<SearchActivity> {
                 putExtra("key", key)
                 putExtra("searchScope", SearchScope(source).toString())
@@ -556,6 +564,10 @@ class SearchActivity : VMBaseActivity<ActivityBookSearchBinding, SearchViewModel
         }
 
         fun start(context: Context, source: BookSourcePart, key: String? = null) {
+            if (!io.legado.app.help.backend.PermissionManager.canSearch()) {
+                android.widget.Toast.makeText(context, "当前用户组无搜索权限", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
             context.startActivity<SearchActivity> {
                 putExtra("key", key)
                 putExtra("searchScope", SearchScope(source).toString())

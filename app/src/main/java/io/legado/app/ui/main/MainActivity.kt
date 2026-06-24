@@ -260,6 +260,28 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
                             }
                         }
                     }
+                    // 检查强制更新
+                    result.latestVersion?.let { version ->
+                        val minVersion = version.optInt("min_version_code", 0)
+                        val downloadUrl = version.optString("download_url", "")
+                        val versionName = version.optString("version_name", "")
+                        if (minVersion > appInfo.versionCode && downloadUrl.isNotBlank()) {
+                            alert("发现新版本", "当前版本过低，必须更新到 v$versionName 才能继续使用") {
+                                positiveButton("立即更新") {
+                                    // 跳转浏览器下载
+                                    val intent = android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(downloadUrl)
+                                    )
+                                    startActivity(intent)
+                                    finish()
+                                }
+                                cancellable(false)
+                            }
+                            block.resume(false)
+                            return@launch
+                        }
+                    }
                     block.resume(true)
                 }
                 is AuthResult.NeedConfig, is AuthResult.NeedLogin -> {
@@ -558,15 +580,14 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
             if (resultCode == RESULT_OK) {
                 // 登录成功，重新启动初始化流程
                 lifecycleScope.launch {
-                    if (backendAuth()) {
-                        upVersion()
-                        setLocalPassword()
-                        notifyAppCrash()
-                        backupSync()
-                        viewModel.setActivityCallback(this@MainActivity)
-                        binding.viewPagerMain.postDelayed(1000) {
-                            viewModel.ruleSubsUp()
-                        }
+                    if (!backendAuth()) return@launch
+                    upVersion()
+                    setLocalPassword()
+                    notifyAppCrash()
+                    backupSync()
+                    viewModel.setActivityCallback(this@MainActivity)
+                    binding.viewPagerMain.postDelayed(1000) {
+                        viewModel.ruleSubsUp()
                     }
                 }
             } else {

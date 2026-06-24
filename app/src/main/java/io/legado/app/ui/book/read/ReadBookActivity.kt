@@ -1414,6 +1414,10 @@ class ReadBookActivity : BaseReadBookActivity(),
      * 朗读按钮
      */
     override fun onClickReadAloud() {
+        if (!io.legado.app.help.backend.PermissionManager.canUseTTS()) {
+            toastOnUi("当前用户组无朗读权限")
+            return
+        }
         autoPageStop()
         when {
             !BaseReadAloudService.isRun -> {

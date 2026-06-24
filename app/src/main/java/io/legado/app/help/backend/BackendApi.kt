@@ -16,9 +16,10 @@ import java.net.URL
 object BackendApi {
 
     private const val TAG = "BackendApi"
-    
-    // 后台服务器地址（可在设置中修改）
-    var BASE_URL = "http://103.231.58.19:8900"
+
+    // 后台服务器地址，从 BackendAuth 动态获取
+    val BASE_URL: String
+        get() = BackendAuth.serverUrl.ifEmpty { "http://103.231.58.19:8900" }
     
     /**
      * 用户登录

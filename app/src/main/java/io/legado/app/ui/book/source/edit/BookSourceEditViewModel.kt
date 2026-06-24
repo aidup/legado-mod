@@ -99,6 +99,10 @@ class BookSourceEditViewModel(application: Application) : BaseViewModel(applicat
     }
 
     fun importSource(text: String, finally: (source: BookSource) -> Unit) {
+        if (!io.legado.app.help.backend.PermissionManager.canImportSource()) {
+            context.toastOnUi("当前用户组无导入书源权限")
+            return
+        }
         execute {
             importSource(text)
         }.onSuccess {

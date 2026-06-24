@@ -114,6 +114,31 @@ class MainViewModel(application: Application) : BaseViewModel(application) {
                 }
             }
         }
+        // 同步后台书源
+        syncBackendSources()
+    }
+
+    /**
+     * 从后台管控系统拉取书源并导入
+     */
+    private fun syncBackendSources() {
+        execute {
+            if (!io.legado.app.help.backend.BackendAuth.isLoggedIn()) return@execute
+            val sources = io.legado.app.help.backend.BackendApi.getSources() ?: return@execute
+            val gson = com.google.gson.Gson()
+            for (i in 0 until sources.length()) {
+                try {
+                    val json = sources.getJSONObject(i).toString()
+                    val source = gson.fromJson(json, io.legado.app.data.entities.BookSource::class.java)
+                    if (source != null && !source.sourceUrl.isNullOrBlank()) {
+                        val existing = appDb.bookSourceDao.getBookSource(source.sourceUrl)
+                        if (existing == null) {
+                            appDb.bookSourceDao.insert(source)
+                        }
+                    }
+                } catch (_: Exception) { }
+            }
+        }
     }
 
     fun upToc(books: List<Book>, onlyUpdateRead: Boolean) {

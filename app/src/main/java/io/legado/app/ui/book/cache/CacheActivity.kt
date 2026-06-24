@@ -324,6 +324,10 @@ class CacheActivity : VMBaseActivity<ActivityCacheBookBinding, CacheViewModel>()
     }
 
     override fun export(position: Int) {
+        if (!io.legado.app.help.backend.PermissionManager.canExport()) {
+            toastOnUi("当前用户组无导出权限")
+            return
+        }
         val path = ACache.get().getAsString(exportBookPathKey)
         lifecycleScope.launch {
             if (path.isNullOrEmpty() ||

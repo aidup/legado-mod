@@ -68,10 +68,7 @@ object BackendAuth {
         permissions = prefs?.getString(KEY_PERMISSIONS, "")?.split(",") ?: emptyList()
         serverUrl = prefs?.getString(KEY_SERVER_URL, "") ?: ""
         
-        // 设置 API 基础 URL
-        if (serverUrl.isNotEmpty()) {
-            BackendApi.BASE_URL = serverUrl
-        }
+        // API 基础 URL 通过 BackendAuth.serverUrl 动态获取
     }
 
     /**
@@ -159,7 +156,6 @@ object BackendAuth {
      */
     fun setServerUrl(url: String) {
         serverUrl = url.trimEnd('/')
-        BackendApi.BASE_URL = serverUrl
         prefs?.edit()?.putString(KEY_SERVER_URL, serverUrl)?.apply()
     }
 

@@ -444,6 +444,10 @@ class BookInfoViewModel(application: Application) : BaseViewModel(application) {
     }
 
     fun addToBookshelf(success: (() -> Unit)?) { //点击书架按钮或在加分组时触发
+        if (!io.legado.app.help.backend.PermissionManager.canWriteBookshelf()) {
+            context.toastOnUi("当前用户组无书架写入权限")
+            return
+        }
         execute {
             bookData.value?.let { book ->
                 book.removeType(BookType.notShelf)
