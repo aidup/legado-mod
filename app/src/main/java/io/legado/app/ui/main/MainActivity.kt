@@ -241,7 +241,7 @@ class MainActivity : VMBaseActivity<ActivityMainBinding, MainViewModel>(),
      */
     private suspend fun backendAuth(): Boolean = suspendCancellableCoroutine sc@{ block ->
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
+            val result = withContext(IO) {
                 BackendAuth.verify(this@MainActivity)
             }
             when (result) {
